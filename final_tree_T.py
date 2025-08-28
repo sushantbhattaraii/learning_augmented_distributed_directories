@@ -92,25 +92,25 @@ def choose_steiner_set(G, fraction):
     # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
     original_Vp = list(random.choices(nodes, k=vp_size))
     random.shuffle(original_Vp)  # Shuffle Vp to ensure randomness
-    # print("Predicted Vertices (original_Vp):", original_Vp)
+    print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
-    # dup_counts = count_duplicates(original_Vp)
-    # # print("Length of Vp: ",len(original_Vp))
-    # # extra dups = sum of (count - 1) for each duplicated element
-    # extra_dups = sum(cnt for cnt in dup_counts.values())
+    dup_counts = count_duplicates(original_Vp)
+    # print("Length of Original Vp: ",len(original_Vp))
+    # extra dups = sum of (count - 1) for each duplicated element
+    extra_dups = sum(cnt for cnt in dup_counts.values())
 
-    # if dup_counts:
-    #     print("Duplicate elements in original_Vp and their counts:")
-    #     for element, count in dup_counts.items():
-    #         print(f"{element}: {count}")
-    # else:
-    #     print("No duplicate elements found.")
+    if dup_counts:
+        print("Duplicate elements in original_Vp and their counts:")
+        for element, count in dup_counts.items():
+            print(f"{element}: {count}")
+    else:
+        print("No duplicate elements found.")
 
     reduced_Vp = set(original_Vp)  # Convert to a set for uniqueness
 
     # Vp = random.shuffle(Vp)  # Convert to a set for uniqueness
-    # print("Set (reduced_Vp):", reduced_Vp)
-    # print("Length of Set reduced_Vp: ",len(reduced_Vp))
+    print("Set (reduced_Vp):", reduced_Vp)
+    print("Length of Set reduced_Vp: ",len(reduced_Vp))
     # print("Type of Set reduced_Vp:", type(reduced_Vp))
 
     reduced_Vp = list(reduced_Vp)  # Convert back to a list for indexing
@@ -123,19 +123,23 @@ def choose_steiner_set(G, fraction):
     # remaining = set(nodes) - set(reduced_Vp)
     owner = random.choice(list(nodes))
 
-    # print ("Owner node:", owner)
+    print ("Owner node:", owner)
     # print("Type of owner:", type(owner))
+
+    print("Again (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
     # Insert owner to reduced_Vp list at a random position
     insert_position = random.randint(0, len(reduced_Vp))
     reduced_Vp.insert(insert_position, owner)
     S = reduced_Vp.copy()
     S = set(S)  # Convert to a set for uniqueness
-    # print("List after inserting owner:", reduced_Vp)
-    # print("Length of List after inserting owner: ",len(reduced_Vp))
+    print("List after inserting owner in reduced Vp:", reduced_Vp)
+    print("Length of List after inserting owner: ",len(reduced_Vp))
     # print("Type of list after inserting owner:", type(reduced_Vp))
     # print("Type of original vp:", type(original_Vp))
+
     # Returning original_Vp as list, reduced_Vp as list, and owner as integer
+    exit()
     return S, original_Vp, owner
 
 
