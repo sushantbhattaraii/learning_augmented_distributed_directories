@@ -88,10 +88,16 @@ def choose_steiner_set(G, fraction):
     nodes = list(G.nodes())
     random.shuffle(nodes)  # Shuffle the nodes to ensure randomness
     total_nodes = len(nodes)
-    vp_size = int(fraction) # Fraction of nodes to be chosen as Vp
-    # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
-    original_Vp = list(random.choices(nodes, k=vp_size))
-    random.shuffle(original_Vp)  # Shuffle Vp to ensure randomness
+
+    while True:
+        vp_size = int(fraction) # Fraction of nodes to be chosen as Vp
+        # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
+        original_Vp = list(random.choices(nodes, k=vp_size))
+        random.shuffle(original_Vp)  # Shuffle Vp to ensure randomness
+
+        if all(original_Vp[i] != original_Vp[i+1] for i in range(len(original_Vp)-1)):
+            break
+
     print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
     dup_counts = count_duplicates(original_Vp)
