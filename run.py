@@ -426,15 +426,14 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     while True:
         S_example, Vp, owner = choose_steiner_set(G_example, fraction)
         print("Randomly chosen Predicted Vertices (Vp):", Vp)
-        # print("Owner node:", owner)
-        # print("Steiner set S:", S_example)
+        print("Owner node:", owner)
+        print("Steiner set S:", S_example)
 
         # Compute Steiner tree
         
         T_H = steiner_tree(G_example, S_example)
 
         see_graph(T_H)
-        exit()
 
         # Print edges of the resulting Final tree
         # print("Final Tree edges:")
@@ -452,7 +451,7 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     # for u, v, weight in T.edges(data='weight'):
     #     print(f"Edge ({u}, {v}) has weight: {weight}")
 
-    # show_graph(T)
+    see_graph(T)
     overlap = int(overlap)
     Q = calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, overlap)
     print("Size of Q:", len(Q))

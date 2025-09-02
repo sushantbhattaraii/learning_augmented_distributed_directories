@@ -26,6 +26,9 @@ def steiner_tree(G, steiner_vertices):
     # Convert steiner_vertices to a set for quick membership checks
     S = set(steiner_vertices)
 
+    print("\n Inside steiner_tree function \n")
+    print("Steiner vertices in S:", S)
+
     # Step 1: Construct the complete graph G1 on the Steiner vertices, using Dijkstra's algorithm
     #         with edge weights given by shortest path distances in G.
     #         We'll use all-pairs shortest paths restricted to S.
@@ -98,7 +101,7 @@ def choose_steiner_set(G, fraction):
         if all(original_Vp[i] != original_Vp[i+1] for i in range(len(original_Vp)-1)):
             break
 
-    print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
+    # print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
     dup_counts = count_duplicates(original_Vp)
     # print("Length of Original Vp: ",len(original_Vp))
@@ -115,8 +118,8 @@ def choose_steiner_set(G, fraction):
     reduced_Vp = set(original_Vp)  # Convert to a set for uniqueness
 
     # Vp = random.shuffle(Vp)  # Convert to a set for uniqueness
-    print("Set (reduced_Vp):", reduced_Vp)
-    print("Length of Set reduced_Vp: ",len(reduced_Vp))
+    # print("Set (reduced_Vp):", reduced_Vp)
+    # print("Length of Set reduced_Vp: ",len(reduced_Vp))
     # print("Type of Set reduced_Vp:", type(reduced_Vp))
 
     reduced_Vp = list(reduced_Vp)  # Convert back to a list for indexing
@@ -132,20 +135,22 @@ def choose_steiner_set(G, fraction):
     print ("Owner node:", owner)
     # print("Type of owner:", type(owner))
 
-    print("Again (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
+    # print("Again (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
     # Insert owner to reduced_Vp list at a random position
     insert_position = random.randint(0, len(reduced_Vp))
     reduced_Vp.insert(insert_position, owner)
     S = reduced_Vp.copy()
     S = set(S)  # Convert to a set for uniqueness
-    print("List after inserting owner in reduced Vp:", reduced_Vp)
-    print("Length of List after inserting owner: ",len(reduced_Vp))
+    # print("List after inserting owner in reduced Vp:", reduced_Vp)
+    # print("Length of List after inserting owner: ",len(reduced_Vp))
+    # print("\nSet after inserting owner in S:", S)
+    # print("Length of Set S after inserting owner: ",len(S))
     # print("Type of list after inserting owner:", type(reduced_Vp))
     # print("Type of original vp:", type(original_Vp))
 
     # Returning original_Vp as list, reduced_Vp as list, and owner as integer
-    exit()
+
     return S, original_Vp, owner
 
 
