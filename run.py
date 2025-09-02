@@ -290,12 +290,17 @@ def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap):
 
         # 3) check if within tolerance
         if current_overlap <= overlap:
-            return Q
+            while True:
+                random.shuffle(Q)  # Shuffle Vp to ensure randomness
+                if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
+                    return Q
 
     # print(f"Could not reach {overlap}% overlap after {max_iter} tries.")
     # print(f"Last overlap was {current_overlap:.2f}%, duplicates:", dup_counts)
-    random.shuffle(Q)  # Shuffle the list to ensure randomness
-    return Q
+    while True:
+        random.shuffle(Q)  # Shuffle Vp to ensure randomness
+        if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
+            return Q
 
 def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, overlap):
     # V is the set of all vertices in the graph G.
@@ -336,15 +341,11 @@ def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, ov
     link_[owner] = owner
     linkArrow_[owner] = owner
     
-    # print("Initial parent dictionary:", parent)
-    # print("Initial link:", link_)
     
-    # Run publish() from owner = 5
+    # Run publish() from owner
     publish(T, owner, root, parent, link_)
     publish_arrow(mst_g, owner, root, parent_arrow, linkArrow_)
     
-    # print("\nAfter running publish() from owner")
-    # print("Updated link:", link_)
 
     distances_in_G = []
     distances_in_T = []
@@ -369,10 +370,7 @@ def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, ov
         # for node in sorted(T.nodes()):
         #     print(link_)
 
-    # print("Distances in G: ")
-    # print(distances_in_G)
-    # print("Distances in T: ")
-    # print(distances_in_T)
+
     sum_of_distances_in_G = sum(distances_in_G)
     sum_of_distances_in_T = sum(distances_in_T)
     sum_of_distances_in_mst_g = sum(distances_in_mst_g)
@@ -383,6 +381,7 @@ def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, ov
     # print("Type of distances in G:", type(distances_in_G))
     # print("Type of distances in T:", type(distances_in_T))
     # stretch = max(stretches) if stretches else 0
+
     GREEN = "\033[92m"
     RESET = "\033[0m"
     SKY_BLUE = "\033[94m"
@@ -402,12 +401,14 @@ def calculate_error(Q, Vp, G_example, diameter_of_G, diameter_of_T):
     
     print("Diameter of G:", diameter_of_G)
     print("Diameter of T:", diameter_of_T)
+    print("Errors: ", errors)
     total_max_error = max(errors) if errors else 0
     total_min_error = min(errors) if errors else 0
     RED = "\033[91m"
     RESET = "\033[0m"
     print(f"{RED}\nOverall max error (max_i(distance_in_G / diameter_G)) = {total_max_error:.4f}{RESET}")
     print(f"{RED}\nOverall min error (min_i(distance_in_G / diameter_G)) = {total_min_error:.4f}{RESET}")
+    exit()
     return total_max_error, total_min_error
 
 
