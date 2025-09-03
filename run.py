@@ -401,14 +401,13 @@ def calculate_error(Q, Vp, G_example, diameter_of_G, diameter_of_T):
     
     print("Diameter of G:", diameter_of_G)
     print("Diameter of T:", diameter_of_T)
-    print("Errors: ", errors)
+    # print("Errors: ", errors)
     total_max_error = max(errors) if errors else 0
     total_min_error = min(errors) if errors else 0
     RED = "\033[91m"
     RESET = "\033[0m"
     print(f"{RED}\nOverall max error (max_i(distance_in_G / diameter_G)) = {total_max_error:.4f}{RESET}")
     print(f"{RED}\nOverall min error (min_i(distance_in_G / diameter_G)) = {total_min_error:.4f}{RESET}")
-    exit()
     return total_max_error, total_min_error
 
 
@@ -434,7 +433,7 @@ def main(fraction, network_file_name, error_cutoff, overlap):
         
         T_H = steiner_tree(G_example, S_example)
 
-        see_graph(T_H)
+        # see_graph(T_H)
 
         # Print edges of the resulting Final tree
         # print("Final Tree edges:")
@@ -452,7 +451,7 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     # for u, v, weight in T.edges(data='weight'):
     #     print(f"Edge ({u}, {v}) has weight: {weight}")
 
-    see_graph(T)
+    # see_graph(T)
     overlap = int(overlap)
     Q = calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, overlap)
     print("Size of Q:", len(Q))

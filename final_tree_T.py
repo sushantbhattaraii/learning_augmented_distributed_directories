@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import random
 from plot_graph import show_graph
 from run import count_duplicates
+from random_no_consecutive_numbers_generator import random_no_consecutive
 
 
 
@@ -92,14 +93,14 @@ def choose_steiner_set(G, fraction):
     random.shuffle(nodes)  # Shuffle the nodes to ensure randomness
     total_nodes = len(nodes)
 
-    while True:
-        vp_size = int(fraction) # Fraction of nodes to be chosen as Vp
-        # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
-        original_Vp = list(random.choices(nodes, k=vp_size))
-        random.shuffle(original_Vp)  # Shuffle Vp to ensure randomness
+    vp_size = int(fraction) # Fraction of nodes to be chosen as Vp
+    # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
+    # original_Vp = list(random.choices(nodes, k=vp_size))
 
-        if all(original_Vp[i] != original_Vp[i+1] for i in range(len(original_Vp)-1)):
-            break
+    # This function 'random_no_consecutive' generates a list of 'vp_size' random numbers between 0 and total_nodes-1 with guaranteed no consecutive duplicates 
+    original_Vp = random_no_consecutive(n=vp_size, a=0, b=total_nodes-1, rng=random.Random())
+    
+    # random.shuffle(original_Vp)  # Shuffle Vp to ensure randomness
 
     # print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
