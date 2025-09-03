@@ -270,7 +270,20 @@ def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction
         Q = []
         for v in Vp:
             dist_map = nx.single_source_dijkstra_path_length(G, v, cutoff=float(diam/error_cutoff), weight="weight")
-            Q.append(random.choice(list(dist_map.keys())))
+            test_value = random.choice(list(dist_map.keys()))
+            if(Q is not None and len(Q) > 0):
+                while (test_value == Q[len(Q) - 1]):
+                    dist_map = nx.single_source_dijkstra_path_length(G, v, cutoff=float(diam/error_cutoff), weight="weight")
+                    test_value = random.choice(list(dist_map.keys()))
+                    break
+            
+            Q.append(test_value)
+
+
+            # if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
+            #     Q.append(random.choice(list(dist_map.keys())))
+            # else:
+            #     continue
 
         # 2) compute overlap
         dup_counts = count_duplicates(Q)
@@ -290,8 +303,8 @@ def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction
 
         # 3) check if within tolerance
         if current_overlap <= overlap:
-            set_Q = set(Q)
-            Q = random_from_set_no_consecutive(set_Q, n=int(fraction), rng=random.Random())
+            # set_Q = set(Q)
+            # Q = random_from_set_no_consecutive(set_Q, n=int(fraction), rng=random.Random())
             return Q
             # while True:
             #     random.shuffle(Q)  # Shuffle Vp to ensure randomness
@@ -306,8 +319,8 @@ def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction
     #         return Q
 
     print(f"Could not reach {overlap}% overlap after {max_iter} tries.")
-    set_Q = set(Q)
-    Q = random_from_set_no_consecutive(set_Q, n=int(fraction), rng=random.Random())
+    # set_Q = set(Q)
+    # Q = random_from_set_no_consecutive(set_Q, n=int(fraction), rng=random.Random())
     return Q
 
 
