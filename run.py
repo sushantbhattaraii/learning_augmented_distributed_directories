@@ -10,7 +10,7 @@ import os
 from fractions import Fraction
 from collections import Counter
 from draw_graph import see_graph
-
+from random_no_consecutive_numbers_generator import random_from_set_no_consecutive
 
 
 request_queue = defaultdict(deque)
@@ -261,7 +261,7 @@ def count_duplicates(input_list):
     duplicates = {element: count for element, count in counts.items() if count > 1}
     return duplicates
 
-def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap):
+def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction):
     diam = nx.diameter(G, weight='weight')
     max_iter = 100000  # Maximum number of iterations to avoid infinite loop
 
@@ -290,17 +290,26 @@ def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap):
 
         # 3) check if within tolerance
         if current_overlap <= overlap:
-            while True:
-                random.shuffle(Q)  # Shuffle Vp to ensure randomness
-                if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
-                    return Q
+            set_Q = set(Q)
+            Q = random_from_set_no_consecutive(set_Q, n=int(fraction), rng=random.Random())
+            return Q
+            # while True:
+            #     random.shuffle(Q)  # Shuffle Vp to ensure randomness
+            #     if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
+            #         return Q
 
     # print(f"Could not reach {overlap}% overlap after {max_iter} tries.")
     # print(f"Last overlap was {current_overlap:.2f}%, duplicates:", dup_counts)
-    while True:
-        random.shuffle(Q)  # Shuffle Vp to ensure randomness
-        if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
-            return Q
+    # while True:
+    #     random.shuffle(Q)  # Shuffle Vp to ensure randomness
+    #     if all(Q[i] != Q[i+1] for i in range(len(Q)-1)):
+    #         return Q
+
+    print(f"Could not reach {overlap}% overlap after {max_iter} tries.")
+    set_Q = set(Q)
+    Q = random_from_set_no_consecutive(set_Q, n=int(fraction), rng=random.Random())
+    return Q
+
 
 def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, overlap):
     # V is the set of all vertices in the graph G.
@@ -312,7 +321,7 @@ def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, ov
     # available_for_Q = list(set(V) - {owner})
     # Q = random.sample(available_for_Q, len(Vp))
 
-    Q = sample_Q_within_diameter_with_overlap(G_example, Vp, error_cutoff, overlap)
+    Q = sample_Q_within_diameter_with_overlap(G_example, Vp, error_cutoff, overlap, fraction)
 
     print("Selected Q = ", Q)
 
