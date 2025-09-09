@@ -12,12 +12,26 @@ def main(network_file_name, repetitions, error_cutoff, overlap):
     min_errors = []
     stretches = []
     stretches_arrow = []
+        
+    nodes_count = [] 
+
+    nodes_num = int(re.findall(r"\d+", network_file_name)[0])
+    # print("Total nodes in the graph: ", nodes_num)
+    # print("Type of n: ", type(nodes_num))
+        
+    fractions = []
+    while nodes_num > 1:
+        nodes_num //=2
+        fractions.append(nodes_num)
+
+    fractions = fractions[::-1]
+
     for rep in range(repetitions):
         # The four fraction values
-        # fractions = [1/32, 1/16, 1/8, 1/4, 1/2]
-        fractions = [10, 100, 1000, 10000]
-        nodes_count = []
-
+        # fractions = [n/2, n/4, n/8, n/16, n/32, n/64, n/128]
+        # fractions = [10, 100, 1000, 10000]
+        
+        # print("Fractions to be used: ", fractions)
 
         pattern = re.compile(
             r"Overall max error \(max_i\(distance_in_G / diameter_G\)\) =\s*([0-9.+\-eE]+)"
@@ -28,7 +42,7 @@ def main(network_file_name, repetitions, error_cutoff, overlap):
         )
 
         pattern2 = re.compile(
-            r"Total \# of vertices \(n\):\s*([0-9.+\-eE]+)"
+            r"Total number of vertices \(n\):\s*([0-9.+\-eE]+)"
         )
 
         pattern3 = re.compile(

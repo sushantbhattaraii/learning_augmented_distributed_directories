@@ -338,7 +338,7 @@ def calculate_stretch(G_example, T, mst_g, Vp, fraction, owner, error_cutoff, ov
 
     print("Selected Q = ", Q)
 
-    print("Total # of vertices (n): ", len(V))
+    print("Total number of vertices (n): ", len(V))
     # print("Total vertices (V):", V)
     # print("Fraction used:", fraction)
     # print("Predicted vertices (Vp):", Vp)
@@ -445,29 +445,29 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     print("Diameter of G_example:", diameter_of_G)
     print("Diameter of MST:", diameter_of_mst_g)
 
-    while True:
-        S_example, Vp, owner = choose_steiner_set(G_example, fraction)
-        print("Randomly chosen Predicted Vertices (Vp):", Vp)
-        print("Owner node:", owner)
-        print("Steiner set S:", S_example)
+    # while True:
+    S_example, Vp, owner = choose_steiner_set(G_example, fraction)
+    print("Randomly chosen Predicted Vertices (Vp):", Vp)
+    print("Owner node:", owner)
+    print("Steiner set S:", S_example)
 
-        # Compute Steiner tree
-        
-        T_H = steiner_tree(G_example, S_example)
+    # Compute Steiner tree
+    
+    T_H = steiner_tree(G_example, S_example)
 
-        # see_graph(T_H)
+    # see_graph(T_H)
 
-        # Print edges of the resulting Final tree
-        # print("Final Tree edges:")
-        # for (u, v, data) in T_H.edges(data=True):
-        #     print(f"{u} - {v}, weight = {v['weight'] if isinstance(v, dict) else v}")
+    # Print edges of the resulting Final tree
+    # print("Final Tree edges:")
+    # for (u, v, data) in T_H.edges(data=True):
+    #     print(f"{u} - {v}, weight = {v['weight'] if isinstance(v, dict) else v}")
 
-        # Compute Final tree T
-        T = augment_steiner_tree_with_remaining_vertices(G_example, T_H)
-        diameter_of_T = nx.diameter(T, weight='weight')
-        print("Diameter of T:", diameter_of_T)
-        if diameter_of_T <= diameter_of_mst_g:
-            break
+    # Compute Final tree T
+    T = augment_steiner_tree_with_remaining_vertices(G_example, T_H)
+    diameter_of_T = nx.diameter(T, weight='weight')
+    print("Diameter of T:", diameter_of_T)
+        # if diameter_of_T <= diameter_of_mst_g:
+        #     break
 
     # verifying the edge weights by printing them
     # for u, v, weight in T.edges(data='weight'):
