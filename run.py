@@ -460,7 +460,36 @@ def modify_the_mst_g(mst_g, G_example, S_example):
 
     return H, removed_in_order
 
+def make_G_sub(G_example, removed_vertices_for_subgraph):
+    H = G_example.copy()
+    candidates = set(removed_vertices_for_subgraph)
+    removed_in_order= []
 
+    # Initialize queue with all current leaves that are in candidates
+    q = deque(v for v in H.nodes if H.degree(v) <= 1 and v in candidates)
+
+    while q:
+        v = q.popleft()
+        if v not in H or v not in candidates:
+            continue
+
+        # Don't delete the last node
+        if H.number_of_nodes() <= 1:
+            break
+
+        # Safe to remove leaf
+        if H.degree(v) <= 1:
+            neighbors = list(H.neighbors(v))
+            H.remove_node(v)
+            candidates.remove(v)
+            removed_in_order.append(v)
+
+            # Check neighbors — they may have become leaves
+            for u in neighbors:
+                if u in H and H.degree(u) <= 1 and u in candidates:
+                    q.append(u)
+
+    return H, removed_in_order
 
 def main(fraction, network_file_name, error_cutoff, overlap):
 
@@ -474,42 +503,47 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     print("Diameter of G_example:", diameter_of_G)
     print("Diameter of MST:", diameter_of_mst_g)
 
-    # while True:
-    S_example, Vp, owner = choose_steiner_set(G_example, fraction)
-    print("Randomly chosen Predicted Vertices (Vp):", Vp)
-    print("Owner node:", owner)
-    print("Steiner set S:", S_example)
+    while True:
+        S_example, Vp, owner = choose_steiner_set(G_example, fraction)
+        print("Randomly chosen Predicted Vertices (Vp):", Vp)
+        print("Owner node:", owner)
+        print("Steiner set S:", S_example)
 
-    # Compute Steiner tree
-    
-    T_H = steiner_tree(G_example, S_example)
+        # Select S_example, Vp, owner such that only when diameter of G_sub <= diameter of G/4
+        removed_vertices_for_subgraph = set(G_example.nodes()) - set(S_example)
 
-    modified_mst, actually_removed = modify_the_mst_g(mst_g, G_example, S_example)
+        G_sub, removed_nodes = make_G_sub(G_example, removed_vertices_for_subgraph)
+        diameter_of_G_sub = nx.diameter(G_sub, weight='weight')
+        # Compute Steiner tree
+        
+        T_H = steiner_tree(G_example, S_example)
 
-    PINK   = "\033[95m"  # Magenta / Pink
-    PURPLE = "\033[35m"  # Purple
-    YELLOW = "\033[93m"  # Bright Yellow
-    RESET  = "\033[0m"
-    print(f"{PINK}\nDiameter of modified MST = {nx.diameter(modified_mst, weight='weight')}{RESET}")
-    print(f"{YELLOW}\nDiameter of Steiner tree = {nx.diameter(T_H, weight='weight')}{RESET}")
+        modified_mst, actually_removed = modify_the_mst_g(mst_g, G_example, S_example)
 
-    # print("Original nodes:", mst_g.number_of_nodes())
-    # print("Modified nodes:", modified_mst.number_of_nodes())
-    # print("Actually removed (leaves-only, iteratively):", sorted(actually_removed))
+        PINK   = "\033[95m"  # Magenta / Pink
+        PURPLE = "\033[35m"  # Purple
+        YELLOW = "\033[93m"  # Bright Yellow
+        RESET  = "\033[0m"
+        print(f"{PINK}\nDiameter of modified MST = {nx.diameter(modified_mst, weight='weight')}{RESET}")
+        print(f"{YELLOW}\nDiameter of Steiner tree = {nx.diameter(T_H, weight='weight')}{RESET}")
 
-    # see_graph(T_H)
+        # print("Original nodes:", mst_g.number_of_nodes())
+        # print("Modified nodes:", modified_mst.number_of_nodes())
+        # print("Actually removed (leaves-only, iteratively):", sorted(actually_removed))
 
-    # Print edges of the resulting Final tree
-    # print("Final Tree edges:")
-    # for (u, v, data) in T_H.edges(data=True):
-    #     print(f"{u} - {v}, weight = {v['weight'] if isinstance(v, dict) else v}")
+        # see_graph(T_H)
 
-    # Compute Final tree T
-    T = augment_steiner_tree_with_remaining_vertices(G_example, T_H)
-    diameter_of_T = nx.diameter(T, weight='weight')
-    print("Diameter of T:", diameter_of_T)
-        # if diameter_of_T <= diameter_of_mst_g:
-        #     break
+        # Print edges of the resulting Final tree
+        # print("Final Tree edges:")
+        # for (u, v, data) in T_H.edges(data=True):
+        #     print(f"{u} - {v}, weight = {v['weight'] if isinstance(v, dict) else v}")
+
+        # Compute Final tree T
+        T = augment_steiner_tree_with_remaining_vertices(G_example, T_H)
+        diameter_of_T = nx.diameter(T, weight='weight')
+        print("Diameter of T:", diameter_of_T)
+        if diameter_of_G_sub <= diameter_of_G/4:
+            break
 
     # verifying the edge weights by printing them
     # for u, v, weight in T.edges(data='weight'):

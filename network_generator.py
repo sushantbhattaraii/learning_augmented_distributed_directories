@@ -18,7 +18,7 @@ from networkx.readwrite import json_graph
 # k = 20
 # num_nodes = 128
 # k = 17
-num_nodes = 16
+num_nodes = 32
 # k = 15
 
 watts_strogatz_prob = 0.03
