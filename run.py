@@ -432,6 +432,35 @@ def calculate_error(Q, Vp, G_example, diameter_of_G, diameter_of_T):
     print(f"{RED}\nOverall min error (min_i(distance_in_G / diameter_G)) = {total_min_error:.4f}{RESET}")
     return total_max_error, total_min_error
 
+def modify_the_mst_g(mst_g, G_example, S_example):
+    removed_nodes_set = set (mst_g.nodes()) - set(S_example)
+    H = mst_g.copy()
+    candidates = set(removed_nodes_set)
+    removed_in_order = list(removed_nodes_set)
+
+
+    q = deque(v for v in H.nodes if H.degree(v) <= 1 and v in candidates)
+
+    while q:
+        v = q.popleft()
+        if v not in H or v not in candidates:
+            continue  # might have been removed already
+
+        # In a tree, "removable without disconnecting" ⇔ "is a leaf (degree ≤ 1)"
+        if H.degree(v) <= 1:
+            neighbors = list(H.neighbors(v))
+            H.remove_node(v)
+            candidates.remove(v)
+            removed_in_order.append(v)
+
+            # Some neighbors might have become leaves; if they are candidates, enqueue them
+            for u in neighbors:
+                if u in H and H.degree(u) <= 1 and u in candidates:
+                    q.append(u)
+
+    return H, removed_in_order
+
+
 
 def main(fraction, network_file_name, error_cutoff, overlap):
 
@@ -454,6 +483,19 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     # Compute Steiner tree
     
     T_H = steiner_tree(G_example, S_example)
+
+    modified_mst, actually_removed = modify_the_mst_g(mst_g, G_example, S_example)
+
+    PINK   = "\033[95m"  # Magenta / Pink
+    PURPLE = "\033[35m"  # Purple
+    YELLOW = "\033[93m"  # Bright Yellow
+    RESET  = "\033[0m"
+    print(f"{PINK}\nDiameter of modified MST = {nx.diameter(modified_mst, weight='weight')}{RESET}")
+    print(f"{YELLOW}\nDiameter of Steiner tree = {nx.diameter(T_H, weight='weight')}{RESET}")
+
+    # print("Original nodes:", mst_g.number_of_nodes())
+    # print("Modified nodes:", modified_mst.number_of_nodes())
+    # print("Actually removed (leaves-only, iteratively):", sorted(actually_removed))
 
     # see_graph(T_H)
 

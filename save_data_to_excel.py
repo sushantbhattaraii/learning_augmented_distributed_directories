@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import re
 
-def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, stretches_arrow, file_name, reps, error_cutoff):
+def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, stretches_arrow, diameters_modified_mst, diameters_steiner_tree, file_name, reps, error_cutoff):
     """
     Save both raw and summary statistics of error and stretch data to an Excel file.
     """
@@ -12,13 +12,15 @@ def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, st
     groups_min_error = [min_errors[i::n_groups] for i in range(n_groups)]
     groups_stretch = [stretches[i::n_groups] for i in range(n_groups)]
     groups_stretch_arrow = [stretches_arrow[i::n_groups] for i in range(n_groups)]
+    groups_diameter_modified_mst = [diameters_modified_mst[i::n_groups] for i in range(n_groups)]
+    groups_diameter_steiner_tree = [diameters_steiner_tree[i::n_groups] for i in range(n_groups)]
 
     # Prepare raw records
     total_nodes = int(re.findall(r'\d+\.?\d*', file_name)[0])
     raw_records = []
-    for frac, max_err_list, min_err_list, str_list, str_arrow_list in zip(fractions, groups_max_error, groups_min_error, groups_stretch, groups_stretch_arrow):
+    for frac, max_err_list, min_err_list, str_list, str_arrow_list, diam_modified_mst_list, diam_steiner_tree_list in zip(fractions, groups_max_error, groups_min_error, groups_stretch, groups_stretch_arrow, groups_diameter_modified_mst, groups_diameter_steiner_tree):
         num_nodes = int(total_nodes)
-        for max_err, min_err, strc, str_arrow_c in zip(max_err_list, min_err_list, str_list, str_arrow_list):
+        for max_err, min_err, strc, str_arrow_c, diam_mod_c, diam_stei_c  in zip(max_err_list, min_err_list, str_list, str_arrow_list, diam_modified_mst_list, diam_steiner_tree_list):
             raw_records.append({
                 'fraction': frac,
                 'num_nodes': num_nodes,
@@ -26,6 +28,8 @@ def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, st
                 'min_error': min_err,
                 'stretch': strc,
                 'stretch_arrow': str_arrow_c,
+                'diameter_modified_mst': diam_mod_c,
+                'diameter_steiner_tree': diam_stei_c,
                 'reps': reps,
                 'error_cutoff': error_cutoff,
                 'file_name': file_name
@@ -58,7 +62,7 @@ def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, st
     summary_df = pd.DataFrame(summary_records)
 
     # Ensure output directory exists
-    folder = "results/conceptone_data/random"
+    folder = "results/modified_mst_wala_data/random"
     os.makedirs(folder, exist_ok=True)
     excel_path = os.path.join(folder, f"{os.path.splitext(file_name)[0]}.xlsx")
 
