@@ -46,6 +46,7 @@ def random_no_consecutive(n: int, a: int, b: int, rng: random.Random | None = No
             candidate += 1            # skip the previous value
         out.append(candidate)
 
+    
     return out
 
 
