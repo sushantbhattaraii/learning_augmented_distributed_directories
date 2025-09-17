@@ -503,22 +503,22 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     print("Diameter of G_example:", diameter_of_G)
     print("Diameter of MST:", diameter_of_mst_g)
 
-    while True:
-        S_example, Vp, owner = choose_steiner_set(G_example, fraction)
-        print("Randomly chosen Predicted Vertices (Vp):", Vp)
-        print("Owner node:", owner)
-        print("Steiner set S:", S_example)
+    # while True:
+    S_example, Vp, owner = choose_steiner_set(G_example, fraction)
+    print("Randomly chosen Predicted Vertices (Vp):", Vp)
+    print("Owner node:", owner)
+    print("Steiner set S:", S_example)
 
-        # Select S_example, Vp, owner such that only when diameter of G_sub <= diameter of G/4
-        removed_vertices_for_subgraph = set(G_example.nodes()) - set(S_example)
+    # Select S_example, Vp, owner such that only when diameter of G_sub <= diameter of G/4
+    removed_vertices_for_subgraph = set(G_example.nodes()) - set(S_example)
 
-        G_sub, removed_nodes = make_G_sub(G_example, removed_vertices_for_subgraph)
-        diameter_of_G_sub = nx.diameter(G_sub, weight='weight')
-        print("Yaha Diameter of G_sub:", diameter_of_G_sub)
-        print("Yaha Diameter of G/4:", diameter_of_G/3)
+    G_sub, removed_nodes = make_G_sub(G_example, removed_vertices_for_subgraph)
+    diameter_of_G_sub = nx.diameter(G_sub, weight='weight')
+    print("Yaha Diameter of G_sub:", diameter_of_G_sub)
+    print("Yaha Diameter of G/3:", diameter_of_G/3)
         # Compute Steiner tree
-        if diameter_of_G_sub <= diameter_of_G/3:
-            break
+        # if diameter_of_G_sub <= diameter_of_G/3:
+        #     break
     
     T_H = steiner_tree(G_example, S_example)
 

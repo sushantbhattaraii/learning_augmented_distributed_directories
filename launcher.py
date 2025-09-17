@@ -22,7 +22,7 @@ def main(network_file_name, repetitions, error_cutoff, overlap):
     # print("Type of n: ", type(nodes_num))
         
     fractions = []
-    while nodes_num > 2:
+    while nodes_num > 1:
         nodes_num //=2
         fractions.append(nodes_num)
 

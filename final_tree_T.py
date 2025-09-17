@@ -83,150 +83,249 @@ def steiner_tree(G, steiner_vertices):
     # plt.show()
     return T_s
 
-def construct_original_Vp(
-    G,
-    vp_size,
-    diameter_of_G=None,
-    weight="weight",
-    seed=None,
-    max_attempts=50000):
-    """
-    Build original_Vp of length vp_size:
-      • First pick TWO random nodes whose weighted distance <= diameter/3.
-      • Then repeatedly pick ONE random node whose distance to the LAST chosen node <= diameter/3.
-      • Finally, shuffle into an order with NO consecutive duplicates (values may repeat, just not adjacently).
+# def construct_original_Vp(
+#     G,
+#     vp_size,
+#     diameter_of_G=None,
+#     weight="weight",
+#     seed=None,
+#     max_attempts=50000):
+#     """
+#     Build original_Vp of length vp_size:
+#       • First pick TWO random nodes whose weighted distance <= diameter/3.
+#       • Then repeatedly pick ONE random node whose distance to the LAST chosen node <= diameter/3.
+#       • Finally, shuffle into an order with NO consecutive duplicates (values may repeat, just not adjacently).
 
-    Returns: list of nodes (original_Vp).
-    Raises:  ValueError if construction is impossible within max_attempts.
+#     Returns: list of nodes (original_Vp).
+#     Raises:  ValueError if construction is impossible within max_attempts.
+#     """
+#     if vp_size < 2:
+#         raise ValueError("vp_size must be at least 2 to pick an initial pair as requested.")
+
+#     rng = random.Random(seed)
+#     nodes = list(G.nodes())
+#     if not nodes:
+#         raise ValueError("Graph has no nodes.")
+#     if diameter_of_G is None:
+#         # Compute weighted diameter (on the largest connected component).
+#         # For weighted graphs, use all_pairs_dijkstra_path_length & take max finite distance.
+#         # If graph is disconnected, use the largest CC subgraph.
+#         if isinstance(G, (nx.Graph, nx.DiGraph)):
+#             if not nx.is_connected(G.to_undirected()):
+#                 # restrict to the largest connected component
+#                 cc = max(nx.connected_components(G.to_undirected()), key=len)
+#                 H = G.subgraph(cc).copy()
+#             else:
+#                 H = G
+#         else:
+#             H = G
+#         # Dijkstra APSP
+#         maxd = 0.0
+#         for s, dist_map in nx.all_pairs_dijkstra_path_length(H, weight=weight):
+#             if dist_map:
+#                 md = max(dist_map.values())
+#                 if md > maxd:
+#                     maxd = md
+#         diameter_of_G = maxd if maxd > 0 else 0.0
+
+#     threshold = diameter_of_G / 3.0
+
+#     # helper: weighted shortest-path distance (inf if no path)
+#     def wdist(u, v):
+#         try:
+#             return nx.shortest_path_length(G, u, v, weight=weight, method="dijkstra")
+#         except nx.NetworkXNoPath:
+#             return math.inf
+
+#     # 1) Pick initial pair
+#     attempts = 0
+#     while attempts < max_attempts:
+#         u = rng.choice(nodes)
+#         v = rng.choice(nodes)
+#         if u == v:
+#             d = 0.0
+#         else:
+#             d = wdist(u, v)
+#         if d <= threshold:
+#             original_Vp = [u, v]
+#             break
+#         attempts += 1
+#     else:
+#         raise ValueError("Could not find an initial pair within threshold; increase threshold or check graph.")
+
+#     # 2) Grow to vp_size: choose nodes close to the last element
+#     while len(original_Vp) < vp_size:
+#         last = original_Vp[-1]
+#         found = False
+#         for _ in range(1000):  # inner retries before giving up (tune as needed)
+#             x = rng.choice(nodes)
+#             d = 0.0 if x == last else wdist(last, x)
+#             if d <= threshold:
+#                 original_Vp.append(x)
+#                 found = True
+#                 break
+#         if not found:
+#             # Global retry loop to avoid dead-ends
+#             attempts += 1
+#             if attempts >= max_attempts:
+#                 raise ValueError(
+#                     f"Failed to extend sequence to vp_size={vp_size} under threshold={threshold}. "
+#                     "Consider increasing the threshold or ensuring the graph is well-connected."
+#                 )
+
+#     # 3) Shuffle so there are NO consecutive duplicates (multiset preserved)
+#     #    Use a max-heap rearrangement (like 'reorganize string' problem).
+#     def shuffle_no_consecutive_dupes(seq):
+#         from collections import Counter
+#         cnt = Counter(seq)
+#         # build max-heap of (-count, value)
+#         heap = [(-c, val) for val, c in cnt.items()]
+#         heapq.heapify(heap)
+#         result = []
+#         prev = None  # (neg_count, val) kept out one turn
+
+#         while heap or prev:
+#             if not heap:
+#                 # Only prev remains: if its count > 0, we cannot place it without adjacency
+#                 nc, val = prev
+#                 if -nc > 0:
+#                     # This means impossible to avoid adjacency with this multiset
+#                     return None
+#                 break
+
+#             nc, val = heapq.heappop(heap)
+#             # place val
+#             result.append(val)
+#             nc += 1  # since nc is negative, adding 1 moves it toward 0
+
+#             # push back the prev (if any) because we used a different value now
+#             if prev:
+#                 heapq.heappush(heap, prev)
+#                 prev = None
+
+#             # hold current if it still has remaining count
+#             if nc < 0:
+#                 prev = (nc, val)
+
+#         return result
+
+#     perm = shuffle_no_consecutive_dupes(original_Vp)
+#     if perm is None:
+#         # Fall back: try a few random shuffles to break ties (rare; typically when one node dominates)
+#         for _ in range(200):
+#             rng.shuffle(original_Vp)
+#             ok = all(original_Vp[i] != original_Vp[i+1] for i in range(len(original_Vp)-1))
+#             if ok:
+#                 perm = original_Vp[:]
+#                 break
+#         if perm is None:
+#             # If still impossible, return the built list without the final constraint (or raise).
+#             raise ValueError(
+#                 "Could not produce a permutation without consecutive duplicates. "
+#                 "Your list is too dominated by a single node. Consider relaxing constraints or diversifying picks."
+#             )
+
+#     return perm
+
+def build_original_Vp(G, vp_size, diameter_of_G=None, seed=None, max_attempts_per_slot=5000):
     """
-    if vp_size < 2:
-        raise ValueError("vp_size must be at least 2 to pick an initial pair as requested.")
+    Construct original_Vp of length vp_size.
+    Rule: each chosen node must be within (diameter_of_G)/3 of every node already in original_Vp,
+          and it cannot be the same as the immediately previous node (no consecutive duplicates).
+
+    Parameters
+    ----------
+    G : networkx.Graph
+        Assumed connected (diameter must exist).
+    vp_size : int
+        Desired length of the output list.
+    diameter_of_G : float | int | None
+        If None, computed via nx.diameter(G).
+    seed : int | None
+        Random seed for reproducibility.
+    max_attempts_per_slot : int
+        Safety cap on random draws per position before giving up.
+
+    Returns
+    -------
+    list
+        original_Vp of length vp_size satisfying the constraints.
+
+    Raises
+    ------
+    ValueError
+        If constraints are impossible to satisfy for some slot.
+    """
+    if vp_size <= 0:
+        return []
 
     rng = random.Random(seed)
+
+    # Compute diameter if not provided
+    if diameter_of_G is None:
+        diameter_of_G = nx.diameter(G, weight='weight')
+
+    # Distance threshold
+    thresh = diameter_of_G / 3.0
+
+    # Precompute all-pairs shortest path lengths (works well for small/medium graphs).
+    # For very large graphs, replace with an on-demand cache using single-source distances.
+    all_dists = dict(nx.all_pairs_shortest_path_length(G))
+
     nodes = list(G.nodes())
     if not nodes:
         raise ValueError("Graph has no nodes.")
-    if diameter_of_G is None:
-        # Compute weighted diameter (on the largest connected component).
-        # For weighted graphs, use all_pairs_dijkstra_path_length & take max finite distance.
-        # If graph is disconnected, use the largest CC subgraph.
-        if isinstance(G, (nx.Graph, nx.DiGraph)):
-            if not nx.is_connected(G.to_undirected()):
-                # restrict to the largest connected component
-                cc = max(nx.connected_components(G.to_undirected()), key=len)
-                H = G.subgraph(cc).copy()
-            else:
-                H = G
-        else:
-            H = G
-        # Dijkstra APSP
-        maxd = 0.0
-        for s, dist_map in nx.all_pairs_dijkstra_path_length(H, weight=weight):
-            if dist_map:
-                md = max(dist_map.values())
-                if md > maxd:
-                    maxd = md
-        diameter_of_G = maxd if maxd > 0 else 0.0
 
-    threshold = diameter_of_G / 3.0
+    original_Vp = []
 
-    # helper: weighted shortest-path distance (inf if no path)
-    def wdist(u, v):
-        try:
-            return nx.shortest_path_length(G, u, v, weight=weight, method="dijkstra")
-        except nx.NetworkXNoPath:
-            return math.inf
+    # Helper to check if a candidate is valid
+    def is_valid_candidate(cand):
+        # No consecutive duplicates
+        if original_Vp and cand == original_Vp[-1]:
+            return False
+        # Must be within thresh of ALL existing picks
+        for v in original_Vp:
+            # If disconnected, distance won't exist; treat as invalid
+            try:
+                d = all_dists[cand][v]
+            except KeyError:
+                return False
+            if d > thresh:
+                return False
+        return True
 
-    # 1) Pick initial pair
-    attempts = 0
-    while attempts < max_attempts:
-        u = rng.choice(nodes)
-        v = rng.choice(nodes)
-        if u == v:
-            d = 0.0
-        else:
-            d = wdist(u, v)
-        if d <= threshold:
-            original_Vp = [u, v]
-            break
-        attempts += 1
-    else:
-        raise ValueError("Could not find an initial pair within threshold; increase threshold or check graph.")
-
-    # 2) Grow to vp_size: choose nodes close to the last element
-    while len(original_Vp) < vp_size:
-        last = original_Vp[-1]
+    # Fill positions 0 .. vp_size-1
+    for pos in range(vp_size):
+        # Special note: when original_Vp is empty, the "within thresh of all elements"
+        # condition is vacuously true, so any node can start.
+        tries = 0
         found = False
-        for _ in range(1000):  # inner retries before giving up (tune as needed)
-            x = rng.choice(nodes)
-            d = 0.0 if x == last else wdist(last, x)
-            if d <= threshold:
-                original_Vp.append(x)
+
+        while tries < max_attempts_per_slot and not found:
+            cand = rng.choice(nodes)
+            if is_valid_candidate(cand):
+                original_Vp.append(cand)
                 found = True
-                break
+            else:
+                tries += 1
+
         if not found:
-            # Global retry loop to avoid dead-ends
-            attempts += 1
-            if attempts >= max_attempts:
-                raise ValueError(
-                    f"Failed to extend sequence to vp_size={vp_size} under threshold={threshold}. "
-                    "Consider increasing the threshold or ensuring the graph is well-connected."
-                )
+            # Optional: you could try a deterministic scan instead of random after the cap
+            # to avoid unlucky randomness:
+            for cand in rng.sample(nodes, k=len(nodes)):
+                if is_valid_candidate(cand):
+                    original_Vp.append(cand)
+                    found = True
+                    break
 
-    # 3) Shuffle so there are NO consecutive duplicates (multiset preserved)
-    #    Use a max-heap rearrangement (like 'reorganize string' problem).
-    def shuffle_no_consecutive_dupes(seq):
-        from collections import Counter
-        cnt = Counter(seq)
-        # build max-heap of (-count, value)
-        heap = [(-c, val) for val, c in cnt.items()]
-        heapq.heapify(heap)
-        result = []
-        prev = None  # (neg_count, val) kept out one turn
-
-        while heap or prev:
-            if not heap:
-                # Only prev remains: if its count > 0, we cannot place it without adjacency
-                nc, val = prev
-                if -nc > 0:
-                    # This means impossible to avoid adjacency with this multiset
-                    return None
-                break
-
-            nc, val = heapq.heappop(heap)
-            # place val
-            result.append(val)
-            nc += 1  # since nc is negative, adding 1 moves it toward 0
-
-            # push back the prev (if any) because we used a different value now
-            if prev:
-                heapq.heappush(heap, prev)
-                prev = None
-
-            # hold current if it still has remaining count
-            if nc < 0:
-                prev = (nc, val)
-
-        return result
-
-    perm = shuffle_no_consecutive_dupes(original_Vp)
-    if perm is None:
-        # Fall back: try a few random shuffles to break ties (rare; typically when one node dominates)
-        for _ in range(200):
-            rng.shuffle(original_Vp)
-            ok = all(original_Vp[i] != original_Vp[i+1] for i in range(len(original_Vp)-1))
-            if ok:
-                perm = original_Vp[:]
-                break
-        if perm is None:
-            # If still impossible, return the built list without the final constraint (or raise).
+        if not found:
             raise ValueError(
-                "Could not produce a permutation without consecutive duplicates. "
-                "Your list is too dominated by a single node. Consider relaxing constraints or diversifying picks."
+                f"Failed to place a node at position {pos} under the given constraints. "
+                f"Consider increasing the threshold (diameter/3), ensuring the graph is connected, "
+                f"or reducing vp_size."
             )
 
-    return perm
-
+    return original_Vp
 
 def choose_steiner_set(G, fraction):
     """
@@ -244,13 +343,16 @@ def choose_steiner_set(G, fraction):
     # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
     # original_Vp = list(random.choices(nodes, k=vp_size))
 
-    original_Vp = construct_original_Vp(
-        G,
-        vp_size,
-        diameter_of_G=diameter_of_G,
-        weight="weight",
-        seed=42
-    )
+    # original_Vp = construct_original_Vp(
+    #     G,
+    #     vp_size,
+    #     diameter_of_G=diameter_of_G,
+    #     weight="weight",
+    #     seed=42
+    # )
+    original_Vp = build_original_Vp(G, vp_size, diameter_of_G=diameter_of_G, seed=random.randint(0, 100), max_attempts_per_slot=50000)
+    print("GPT original_Vp Check: ", original_Vp)
+    # exit()
 
     # This function 'random_no_consecutive' generates a list of 'vp_size' random numbers between 0 and total_nodes-1 with guaranteed no consecutive duplicates 
     # original_Vp = random_no_consecutive(n=vp_size, a=0, b=total_nodes-1, rng=random.Random())
