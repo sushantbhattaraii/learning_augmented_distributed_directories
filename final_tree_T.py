@@ -468,6 +468,61 @@ def augment_steiner_tree_with_remaining_vertices(G, T_H):
     return T_final
 
 
+def augment_modified_mst_with_remaining_vertices(G, T_H):
+    """
+    Augments a given Steiner tree T_H by adding the remaining vertices of G,
+    connecting each vertex (from V \ V(T_H)) to the current tree T1 via the shortest path.
+    
+    Parameters:
+    -----------
+    G : networkx.Graph
+        The original weighted, undirected graph. Each edge must have a 'weight' attribute.
+    T_H : networkx.Graph
+        The Steiner tree (subgraph of G) computed from the previous algorithm.
+    
+    Returns:
+    --------
+    T_final : networkx.Graph
+        A tree that spans all vertices of G.
+    """
+    # Start with a copy of the Steiner tree.
+    T_final = T_H.copy()
+    
+    # Set of vertices already in the tree.
+    current_nodes = set(T_final.nodes())
+    
+    # Set of vertices not yet added.
+    remaining_nodes = set(G.nodes()) - current_nodes
+    
+    # Continue until all vertices from G are in the tree.
+    while remaining_nodes:
+        # Use multi-source Dijkstra to compute shortest distances from all nodes in T_final.
+        distances, paths = nx.multi_source_dijkstra(G, current_nodes, weight='weight')
+        
+        # Among the remaining nodes, find one with the minimum distance to T_final.
+        candidate = min(remaining_nodes, key=lambda v: distances.get(v, float('inf')))
+        
+        # Retrieve the shortest path from T_final (one of its nodes) to the candidate.
+        path = paths[candidate]
+        
+        # Add all vertices and edges along the path to T_final.
+        for i in range(len(path) - 1):
+            u, v = path[i], path[i + 1]
+            if not T_final.has_node(u):
+                T_final.add_node(u)
+            if not T_final.has_node(v):
+                T_final.add_node(v)
+            # Add the edge if it doesn't already exist.
+            if not T_final.has_edge(u, v):
+                T_final.add_edge(u, v, weight=G[u][v]['weight'])
+        
+        # Update the current tree's vertex set.
+        current_nodes.update(path)
+        # Update the remaining nodes.
+        remaining_nodes = set(G.nodes()) - current_nodes
+
+    return T_final
+
 if __name__ == "__main__":
     # Example usage:
     # Create a simple weighted graph

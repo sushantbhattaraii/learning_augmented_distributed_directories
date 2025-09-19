@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import re
 
-def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, stretches_arrow, diameters_modified_mst, diameters_steiner_tree, file_name, reps, error_cutoff):
+def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, stretches_arrow, stretches_new, diameters_modified_mst, diameters_steiner_tree, file_name, reps, error_cutoff):
     """
     Save both raw and summary statistics of error and stretch data to an Excel file.
     """
@@ -12,15 +12,16 @@ def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, st
     groups_min_error = [min_errors[i::n_groups] for i in range(n_groups)]
     groups_stretch = [stretches[i::n_groups] for i in range(n_groups)]
     groups_stretch_arrow = [stretches_arrow[i::n_groups] for i in range(n_groups)]
+    groups_stretch_new = [stretches_new[i::n_groups] for i in range(n_groups)]
     groups_diameter_modified_mst = [diameters_modified_mst[i::n_groups] for i in range(n_groups)]
     groups_diameter_steiner_tree = [diameters_steiner_tree[i::n_groups] for i in range(n_groups)]
 
     # Prepare raw records
     total_nodes = int(re.findall(r'\d+\.?\d*', file_name)[0])
     raw_records = []
-    for frac, max_err_list, min_err_list, str_list, str_arrow_list, diam_modified_mst_list, diam_steiner_tree_list in zip(fractions, groups_max_error, groups_min_error, groups_stretch, groups_stretch_arrow, groups_diameter_modified_mst, groups_diameter_steiner_tree):
+    for frac, max_err_list, min_err_list, str_list, str_arrow_list, str_new_list, diam_modified_mst_list, diam_steiner_tree_list in zip(fractions, groups_max_error, groups_min_error, groups_stretch, groups_stretch_arrow, groups_stretch_new, groups_diameter_modified_mst, groups_diameter_steiner_tree):
         num_nodes = int(total_nodes)
-        for max_err, min_err, strc, str_arrow_c, diam_mod_c, diam_stei_c  in zip(max_err_list, min_err_list, str_list, str_arrow_list, diam_modified_mst_list, diam_steiner_tree_list):
+        for max_err, min_err, strc, str_arrow_c, str_new_c, diam_mod_c, diam_stei_c  in zip(max_err_list, min_err_list, str_list, str_arrow_list, str_new_list, diam_modified_mst_list, diam_steiner_tree_list):
             raw_records.append({
                 'fraction': frac,
                 'num_nodes': num_nodes,
@@ -28,6 +29,7 @@ def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, st
                 'min_error': min_err,
                 'stretch': strc,
                 'stretch_arrow': str_arrow_c,
+                'stretch_new': str_new_c,
                 'diameter_modified_mst': diam_mod_c,
                 'diameter_steiner_tree': diam_stei_c,
                 'reps': reps,
