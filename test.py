@@ -64,3 +64,16 @@
 
 # # Show the plot
 # plt.show()
+
+
+from draw_graph import see_graph
+import networkx as nx
+import matplotlib.pyplot as plt
+import os
+
+network_file_name = "16random_diameter35test.edgelist"
+
+graphml_file = os.path.join('graphs_new', str(network_file_name))
+G_example = nx.read_graphml(graphml_file)
+G_example = nx.relabel_nodes(G_example, lambda x: int(x))
+see_graph(G_example)

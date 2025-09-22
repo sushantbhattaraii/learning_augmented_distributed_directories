@@ -6,6 +6,7 @@ import heapq
 from plot_graph import show_graph
 from run import count_duplicates
 from random_no_consecutive_numbers_generator import random_no_consecutive
+from draw_graph import see_graph
 
 
 
@@ -48,6 +49,7 @@ def steiner_tree(G, steiner_vertices):
 
     # Step 2: Find a Minimum Spanning Tree (T1) of G1 using Kruskal's algo.
     T1 = nx.minimum_spanning_tree(G1, weight='weight')
+    see_graph(T1)
 
     # Step 3: Construct G_s by replacing each edge (u, v) in T1 with
     #         the corresponding shortest path in the original graph G.
@@ -65,6 +67,7 @@ def steiner_tree(G, steiner_vertices):
 
     # Step 4: Find a Minimum Spanning Tree (T_s) of G_s using Kruskal.
     T_s = nx.minimum_spanning_tree(G_s, weight='weight')
+    see_graph(T_s)
 
     # Step 5: Prune leaves in T_s that are not Steiner vertices.
     #         i.e., repeatedly remove any leaf node not in S.
