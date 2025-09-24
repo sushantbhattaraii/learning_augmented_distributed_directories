@@ -64,7 +64,7 @@ def save_error_stretch_to_excel(fractions, max_errors, min_errors, stretches, st
     summary_df = pd.DataFrame(summary_records)
 
     # Ensure output directory exists
-    folder = "results/modified_mst_wala_data/random"
+    folder = "results/steiner_corrected_data/random"
     os.makedirs(folder, exist_ok=True)
     excel_path = os.path.join(folder, f"{os.path.splitext(file_name)[0]}.xlsx")
 

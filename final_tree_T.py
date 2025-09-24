@@ -7,84 +7,137 @@ from plot_graph import show_graph
 from run import count_duplicates
 from random_no_consecutive_numbers_generator import random_no_consecutive
 from draw_graph import see_graph
+from itertools import combinations
 
 
+# def steiner_tree(G, steiner_vertices):
+#     """
+#     Constructs a Steiner Tree T_H for the undirected, weighted graph G
+#     and the set of Steiner vertices S (steiner_vertices).
 
-def steiner_tree(G, steiner_vertices):
-    """
-    Constructs a Steiner Tree T_H for the undirected, weighted graph G
-    and the set of Steiner vertices S (steiner_vertices).
+#     Parameters:
+#     -----------
+#     G : networkx.Graph
+#         Undirected, weighted graph. Each edge must have a 'weight' attribute.
+#     steiner_vertices : iterable
+#         The set (or list) of Steiner vertices in G.
 
-    Parameters:
-    -----------
-    G : networkx.Graph
-        Undirected, weighted graph. Each edge must have a 'weight' attribute.
-    steiner_vertices : iterable
-        The set (or list) of Steiner vertices in G.
+#     Returns:
+#     --------
+#     T_H : networkx.Graph
+#         A subgraph of G that is the Steiner tree connecting all vertices in S.
+#     """
+#     # Convert steiner_vertices to a set for quick membership checks
+#     S = set(steiner_vertices)
 
-    Returns:
-    --------
-    T_H : networkx.Graph
-        A subgraph of G that is the Steiner tree connecting all vertices in S.
-    """
-    # Convert steiner_vertices to a set for quick membership checks
-    S = set(steiner_vertices)
+#     print("\n Inside steiner_tree function \n")
+#     print("Steiner vertices in S:", S)
 
-    print("\n Inside steiner_tree function \n")
-    print("Steiner vertices in S:", S)
+#     # Step 1: Construct the complete graph G1 on the Steiner vertices, using Dijkstra's algorithm
+#     #         with edge weights given by shortest path distances in G.
+#     #         We'll use all-pairs shortest paths restricted to S.
+#     #         dist[u][v] = shortest distance from u to v in G.
+#     dist = dict(nx.all_pairs_dijkstra_path_length(G, weight='weight'))
+#     G1 = nx.Graph()
+#     for u in S:
+#         G1.add_node(u)
+#     # Add edges to make G1 complete on S, with weights = shortest path distances
+#     for u in S:
+#         for v in S:
+#             if u < v:
+#                 G1.add_edge(u, v, weight=dist[u][v])
 
-    # Step 1: Construct the complete graph G1 on the Steiner vertices, using Dijkstra's algorithm
-    #         with edge weights given by shortest path distances in G.
-    #         We'll use all-pairs shortest paths restricted to S.
-    #         dist[u][v] = shortest distance from u to v in G.
-    dist = dict(nx.all_pairs_dijkstra_path_length(G, weight='weight'))
+#     # Step 2: Find a Minimum Spanning Tree (T1) of G1 using Kruskal's algo.
+#     T1 = nx.minimum_spanning_tree(G1, weight='weight')
+#     see_graph(T1)
+
+#     # Step 3: Construct G_s by replacing each edge (u, v) in T1 with
+#     #         the corresponding shortest path in the original graph G.
+#     G_s = nx.Graph()
+#     # We'll need actual shortest paths, not just distances:
+#     paths = dict(nx.all_pairs_dijkstra_path(G, weight='weight'))
+
+#     for (u, v) in T1.edges():
+#         shortest_path_uv = paths[u][v]
+#         # Add edges along this shortest path to G_s
+#         for i in range(len(shortest_path_uv) - 1):
+#             a, b = shortest_path_uv[i], shortest_path_uv[i + 1]
+#             w = G[a][b]['weight']
+#             G_s.add_edge(a, b, weight=w)
+
+#     # Step 4: Find a Minimum Spanning Tree (T_s) of G_s using Kruskal.
+#     T_s = nx.minimum_spanning_tree(G_s, weight='weight')
+#     see_graph(T_s)
+
+#     # Step 5: Prune leaves in T_s that are not Steiner vertices.
+#     #         i.e., repeatedly remove any leaf node not in S.
+#     leaves = [n for n in T_s.nodes() if T_s.degree(n) == 1 and n not in S]
+#     while leaves:
+#         for leaf in leaves:
+#             T_s.remove_node(leaf)
+#         leaves = [n for n in T_s.nodes() if T_s.degree(n) == 1 and n not in S]
+
+#     # T_s is now the final Steiner tree T_H
+#     # pos = nx.spring_layout(T_s)
+#     # edge_weight = nx.get_edge_attributes(T_s, 'weight')
+#     # nx.draw(T_s, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=500)
+#     # nx.draw_networkx_edge_labels(T_s, pos, edge_labels=edge_weight)
+#     # plt.title("Steiner Tree Visualization")
+#     # plt.show()
+#     return T_s
+
+
+def steiner_tree(G, S):
+    S = set(S)
+
+    # Construct a complete undirected graoh from G and S
+    MC = nx.algorithms.approximation.steinertree.metric_closure(G)
+
     G1 = nx.Graph()
-    for u in S:
-        G1.add_node(u)
-    # Add edges to make G1 complete on S, with weights = shortest path distances
-    for u in S:
-        for v in S:
-            if u < v:
-                G1.add_edge(u, v, weight=dist[u][v])
+    G1.add_nodes_from(S)
 
-    # Step 2: Find a Minimum Spanning Tree (T1) of G1 using Kruskal's algo.
-    T1 = nx.minimum_spanning_tree(G1, weight='weight')
-    see_graph(T1)
+    for u, v in combinations(S, 2):
+        dist = MC[u][v]["distance"]    # shortest-path distance in G
+        path = MC[u][v]["path"]        # realizing path in G
+        G1.add_edge(u, v, weight=dist, path=path)
 
-    # Step 3: Construct G_s by replacing each edge (u, v) in T1 with
-    #         the corresponding shortest path in the original graph G.
+    # see_graph(G1)
+
+    # Construct a mst from this graph G1, which we will say is: T1
+    T1 = nx.minimum_spanning_tree(G1, weight="weight", algorithm="kruskal")
+
+    # see_graph(T1)
+
+    # Build G_s by replacing each mst_g1 edge with its shortest path in G
     G_s = nx.Graph()
-    # We'll need actual shortest paths, not just distances:
-    paths = dict(nx.all_pairs_dijkstra_path(G, weight='weight'))
 
-    for (u, v) in T1.edges():
-        shortest_path_uv = paths[u][v]
-        # Add edges along this shortest path to G_s
-        for i in range(len(shortest_path_uv) - 1):
-            a, b = shortest_path_uv[i], shortest_path_uv[i + 1]
-            w = G[a][b]['weight']
-            G_s.add_edge(a, b, weight=w)
+    for u, v in T1.edges():
+        # Prefer the realizing path we stored in G1; fall back to recomputing if absent
+        # path = G1[u][v].get("path") or nx.shortest_path(G, u, v, weight="weight")
+        path = G1[u][v].get("path")
 
-    # Step 4: Find a Minimum Spanning Tree (T_s) of G_s using Kruskal.
-    T_s = nx.minimum_spanning_tree(G_s, weight='weight')
-    see_graph(T_s)
+        # Add every consecutive edge on this path with weights from G
+        for a, b in zip(path[:-1], path[1:]):
+            w = G[a][b]["weight"]
+            if not G_s.has_edge(a, b):
+                G_s.add_edge(a, b, weight=w)
 
-    # Step 5: Prune leaves in T_s that are not Steiner vertices.
-    #         i.e., repeatedly remove any leaf node not in S.
-    leaves = [n for n in T_s.nodes() if T_s.degree(n) == 1 and n not in S]
+    # Build mst of G_s and name it as T_s
+    T_s = nx.minimum_spanning_tree(G_s, weight="weight", algorithm="kruskal")
+
+    # see_graph(T_s)
+
+    # Construct final steiner tree T_H by pruning leaves not in S
+    # Repeatedly delete leaves not in `terminals` until every leaf is a terminal.
+
+    T_H = T_s.copy()
+    leaves = [n for n in T_H.nodes if T_H.degree(n) == 1 and n not in S]
     while leaves:
-        for leaf in leaves:
-            T_s.remove_node(leaf)
-        leaves = [n for n in T_s.nodes() if T_s.degree(n) == 1 and n not in S]
+        T_H.remove_nodes_from(leaves)
+        leaves = [n for n in T_H.nodes if T_H.degree(n) == 1 and n not in S]
 
-    # T_s is now the final Steiner tree T_H
-    # pos = nx.spring_layout(T_s)
-    # edge_weight = nx.get_edge_attributes(T_s, 'weight')
-    # nx.draw(T_s, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=500)
-    # nx.draw_networkx_edge_labels(T_s, pos, edge_labels=edge_weight)
-    # plt.title("Steiner Tree Visualization")
-    # plt.show()
-    return T_s
+    return T_H
+
 
 # def construct_original_Vp(
 #     G,

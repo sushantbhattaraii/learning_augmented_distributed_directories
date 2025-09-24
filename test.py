@@ -66,14 +66,95 @@
 # plt.show()
 
 
-from draw_graph import see_graph
+# from draw_graph import see_graph
+# import networkx as nx
+# import matplotlib.pyplot as plt
+# import os
+
+# network_file_name = "16random_diameter35test.edgelist"
+
+# graphml_file = os.path.join('graphs_new', str(network_file_name))
+# G_example = nx.read_graphml(graphml_file)
+# G_example = nx.relabel_nodes(G_example, lambda x: int(x))
+# see_graph(G_example)
+
+
 import networkx as nx
-import matplotlib.pyplot as plt
-import os
+from itertools import combinations
+from draw_graph import see_graph
 
-network_file_name = "16random_diameter35test.edgelist"
+# 1) Build the original weighted, undirected graph G
+G = nx.Graph()
+edges = [
+    (1, 2, 10),
+    (1, 9, 1),
+    (2, 3, 8),
+    (2, 6, 0.5),
+    (3, 4, 9),   # 3 - 4 = 9
+    (3, 5, 2),
+    (4, 5, 2),
+    (5, 6, 1),
+    (5, 9, 1),
+    (6, 7, 1),
+    (7, 8, 0.5),
+    (8, 9, 0.5),
+]
+G.add_weighted_edges_from(edges)
 
-graphml_file = os.path.join('graphs_new', str(network_file_name))
-G_example = nx.read_graphml(graphml_file)
-G_example = nx.relabel_nodes(G_example, lambda x: int(x))
-see_graph(G_example)
+# 2) Terminals / Steiner points
+S = [1, 2, 3, 4]
+S = set(S)
+
+# 3) Build the complete graph G1 on S using shortest-path distances in G
+#    (a.k.a. the metric closure restricted to S)
+#    NetworkX provides a handy metric_closure that also stores the realizing path.
+MC = nx.algorithms.approximation.steinertree.metric_closure(G)
+
+G1 = nx.Graph()
+G1.add_nodes_from(S)
+
+for u, v in combinations(S, 2):
+    dist = MC[u][v]["distance"]    # shortest-path distance in G
+    path = MC[u][v]["path"]        # realizing path in G
+    G1.add_edge(u, v, weight=dist, path=path)
+
+see_graph(G1)
+T1 = nx.minimum_spanning_tree(G1, weight="weight", algorithm="kruskal")
+
+see_graph(T1)
+
+# Build G_s by replacing each mst_g1 edge with its shortest path in G
+G_s = nx.Graph()
+
+for u, v in T1.edges():
+    # Prefer the realizing path we stored in G1; fall back to recomputing if absent
+    # path = G1[u][v].get("path") or nx.shortest_path(G, u, v, weight="weight")
+    path = G1[u][v].get("path")
+
+    # Add every consecutive edge on this path with weights from G
+    for a, b in zip(path[:-1], path[1:]):
+        w = G[a][b]["weight"]
+        if not G_s.has_edge(a, b):
+            G_s.add_edge(a, b, weight=w)
+
+see_graph(G_s)
+
+# Build mst of G_s and name it as T_s
+T_s = nx.minimum_spanning_tree(G_s, weight="weight", algorithm="kruskal")
+see_graph(T_s)
+
+# Construct final steiner tree T_H by pruning leaves not in S
+# Repeatedly delete leaves not in `terminals` until every leaf is a terminal.
+
+T_H = T_s.copy()
+leaves = [n for n in T_H.nodes if T_H.degree(n) == 1 and n not in S]
+print("Leaves to prune:", leaves)
+exit()
+while leaves:
+        T_H.remove_nodes_from(leaves)
+        leaves = [n for n in T_H.nodes if T_H.degree(n) == 1 and n not in S]
+
+see_graph(T_H)
+
+
+

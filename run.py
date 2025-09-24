@@ -11,6 +11,7 @@ from fractions import Fraction
 from collections import Counter
 from draw_graph import see_graph
 from random_no_consecutive_numbers_generator import random_from_set_no_consecutive
+from augment_rem_nodes_with_existing_tree import augment_tree_with_remaining_nodes
 
 
 request_queue = defaultdict(deque)
@@ -568,7 +569,7 @@ def main(fraction, network_file_name, error_cutoff, overlap):
 
     # Contrcut MST_g of Graph G_example for Arrow protocol
     mst_g = nx.minimum_spanning_tree(G_example, weight='weight')
-    see_graph(mst_g)
+    # see_graph(mst_g)
     diameter_of_mst_g = nx.diameter(mst_g, weight='weight')
 
     diameter_of_G = nx.diameter(G_example, weight='weight')
@@ -585,7 +586,7 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     removed_vertices_for_subgraph = set(G_example.nodes()) - set(S_example)
 
     G_sub, removed_nodes = make_G_sub(G_example, removed_vertices_for_subgraph)
-    see_graph(G_sub)
+    # see_graph(G_sub)
     diameter_of_G_sub = nx.diameter(G_sub, weight='weight')
     print("Yaha Diameter of G_sub:", diameter_of_G_sub)
     print("Yaha Diameter of G/3:", diameter_of_G/3)
@@ -594,10 +595,10 @@ def main(fraction, network_file_name, error_cutoff, overlap):
         #     break
     
     T_H = steiner_tree(G_example, S_example)
-    see_graph(T_H)
+    # see_graph(T_H)
 
     modified_mst, actually_removed = modify_the_mst_g(mst_g, G_example, S_example)
-    see_graph(modified_mst)
+    # see_graph(modified_mst)
 
     PINK   = "\033[95m"  # Magenta / Pink
     PURPLE = "\033[35m"  # Purple
@@ -619,9 +620,10 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     
     # Compute Final tree T
     T = augment_steiner_tree_with_remaining_vertices(G_example, T_H)
-    see_graph(T)
+    # T = augment_tree_with_remaining_nodes(G_example, T_H, weight="weight")
+    # see_graph(T)
     T_new = augment_modified_mst_with_remaining_vertices(G_example, modified_mst)
-    see_graph(T_new)
+    # see_graph(T_new)
     diameter_of_T = nx.diameter(T, weight='weight')
     diameter_of_T_new = nx.diameter(T_new, weight='weight')
     print("Diameter of T:", diameter_of_T)
