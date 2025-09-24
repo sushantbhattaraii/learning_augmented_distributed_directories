@@ -9,7 +9,7 @@ import os
 
 # Gather and sort all Excel files
 
-files = sorted(glob.glob('./results/modified_mst_wala_data/random/1024nodes_diameter25_cutoffinf*.xlsx'))
+files = sorted(glob.glob('./results/steiner_corrected_data/random/256nodes_diameter71_cutoffinf-repetitions50*.xlsx'))
 
 # Extract node count and overlap from filename
 m = re.search(r'(\d+)nodes_', files[0])
@@ -126,11 +126,11 @@ ax3.set_xticks(unique_x)
 
 # Save or display
 plt.tight_layout()
-folder = "modified_mst_wala_plots"
+folder = "steiner_corrected_plots"
 folder2 = "random"
 # filename = f'{node_count}_nodes.png'
 filename = f'{node_count}_nodes_cutoff_{actual_cutoff}.png'
 path_to_save = os.path.join('results', folder, folder2, filename)
 
-plt.savefig(path_to_save)
-# plt.show()
+# plt.savefig(path_to_save)
+plt.show()
