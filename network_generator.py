@@ -18,18 +18,18 @@ from networkx.readwrite import json_graph
 # k = 20
 # num_nodes = 128
 # k = 17
-num_nodes = 16
+num_nodes = 128
 # k = 15
 
 watts_strogatz_prob = 0.03
 
-erdos_renyi_prob = 0.25
+erdos_renyi_prob = 0.5
 internet_graph_seed = None  # optional
 
 
 def add_edge_weights(graph):
     for e in graph.edges:
-        w = randint(1, 10)
+        w = randint(1, 20)
         graph.add_edge(e[0], e[1], weight=w)
 
 
@@ -79,14 +79,14 @@ def build_random_graph():
                 longest_connected_comp = sorted(nx.connected_components(random_graph), key=len, reverse=True)[0]
                 # a node in longest_connected_comp
                 comp_node = next(iter(longest_connected_comp))
-                random_graph.add_edge(node, comp_node, weight=1)
+                random_graph.add_edge(node, comp_node, weight=randint(1, 20))
 
         #     attach smaller components to the longest component
         for i in list(reversed(range(1, len(sorted(nx.connected_components(random_graph), key=len, reverse=True))))):
             print("HERE1")
             source_node = next(iter(sorted(nx.connected_components(random_graph), key=len, reverse=True)[i]))
             dest_node = next(iter(sorted(nx.connected_components(random_graph), key=len, reverse=True)[0]))
-            random_graph.add_edge(int(source_node), int(dest_node), weight=1)
+            random_graph.add_edge(int(source_node), int(dest_node), weight=randint(1, 20))
 
     assert nx.is_connected(random_graph)
     add_edge_weights(random_graph)
