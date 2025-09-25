@@ -8,8 +8,8 @@ import pandas as pd
 
 # Load the graph from a GraphML file
 # graphml_file = '\graphs_new\16random_diameter21test.edgelist'
-graphml_file = os.path.join("graphs_new", "16random_diameter21test.edgelist")
-G = nx.read_graphml(graphml_file)
+# graphml_file = os.path.join("graphs_new", "16random_diameter21test.edgelist")
+# G = nx.read_graphml(graphml_file)
 
 def see_graph(G):
     # Position nodes for better visualization
