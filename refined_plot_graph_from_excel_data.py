@@ -9,7 +9,7 @@ import os
 
 # Gather and sort all Excel files
 
-files = sorted(glob.glob('./results/steiner_corrected_data/random/128nodes_diameter7_cutoffinf*.xlsx'))
+files = sorted(glob.glob('./results/steiner_corrected_data/random/128nodes_diameter7_cutoff5.0*.xlsx'))
 
 # Extract node count and overlap from filename
 m = re.search(r'(\d+)nodes_', files[0])
