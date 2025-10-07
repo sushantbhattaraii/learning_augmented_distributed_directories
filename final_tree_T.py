@@ -414,7 +414,7 @@ def choose_steiner_set(G, fraction, diameter_of_G, myNodeCount):
 
     # print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
-    # dup_counts = count_duplicates(original_Vp)
+    dup_counts = count_duplicates(original_Vp)
     # print("Length of Original Vp: ",len(original_Vp))
     # extra dups = sum of (count - 1) for each duplicated element
     extra_dups = sum(cnt for cnt in dup_counts.values())
