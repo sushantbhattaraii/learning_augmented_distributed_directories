@@ -90,7 +90,7 @@ from itertools import combinations
 def steiner_tree(G, S):
     S = set(S)
 
-    # Construct a complete undirected graoh from G and S
+    # Construct a complete undirected graph from G and S
     MC = nx.algorithms.approximation.steinertree.metric_closure(G)
 
     G1 = nx.Graph()
@@ -283,7 +283,7 @@ def steiner_tree(G, S):
 
 #     return perm
 
-def build_original_Vp(G, vp_size, diameter_of_G=None, seed=None, max_attempts_per_slot=5000):
+def build_original_Vp(G, vp_size, nodes, diameter_of_G=None, seed=None, max_attempts_per_slot=5000):
     """
     Construct original_Vp of length vp_size.
     Rule: each chosen node must be within (diameter_of_G)/3 of every node already in original_Vp,
@@ -322,13 +322,13 @@ def build_original_Vp(G, vp_size, diameter_of_G=None, seed=None, max_attempts_pe
         diameter_of_G = nx.diameter(G, weight='weight')
 
     # Distance threshold
-    thresh = diameter_of_G / 3.0
+    thresh = diameter_of_G
 
     # Precompute all-pairs shortest path lengths (works well for small/medium graphs).
     # For very large graphs, replace with an on-demand cache using single-source distances.
     all_dists = dict(nx.all_pairs_shortest_path_length(G))
 
-    nodes = list(G.nodes())
+    # nodes = list(G.nodes())
     if not nodes:
         raise ValueError("Graph has no nodes.")
 
@@ -346,7 +346,7 @@ def build_original_Vp(G, vp_size, diameter_of_G=None, seed=None, max_attempts_pe
                 d = all_dists[cand][v]
             except KeyError:
                 return False
-            if d > thresh:
+            if d >= thresh:
                 return False
         return True
 
@@ -377,23 +377,22 @@ def build_original_Vp(G, vp_size, diameter_of_G=None, seed=None, max_attempts_pe
         if not found:
             raise ValueError(
                 f"Failed to place a node at position {pos} under the given constraints. "
-                f"Consider increasing the threshold (diameter/3), ensuring the graph is connected, "
+                f"Consider increasing the threshold (diameter), ensuring the graph is connected, "
                 f"or reducing vp_size."
             )
 
     return original_Vp
 
-def choose_steiner_set(G, fraction):
+def choose_steiner_set(G, fraction, diameter_of_G, myNodeCount):
     """
     Randomly choose Vp ('fraction' of all nodes) as predicted nodes,
     and then choose one additional 'owner' node not in Vp.
     Return the set S = Vp ∪ {owner}, along with Vp and owner.
     """
-    G = nx.relabel_nodes(G, lambda x: int(x))
-    diameter_of_G = nx.diameter(G, weight='weight')
-    nodes = list(G.nodes())
+    # G = nx.relabel_nodes(G, lambda x: int(x))
+    # diameter_of_G = nx.diameter(G, weight='weight')
+    nodes = list(range(myNodeCount))
     random.shuffle(nodes)  # Shuffle the nodes to ensure randomness
-    total_nodes = len(nodes)
 
     vp_size = int(fraction) # Fraction of nodes to be chosen as Vp
     # vp_size = int(total_nodes * fraction) # Fraction of nodes to be chosen as Vp
@@ -406,9 +405,7 @@ def choose_steiner_set(G, fraction):
     #     weight="weight",
     #     seed=42
     # )
-    original_Vp = build_original_Vp(G, vp_size, diameter_of_G=diameter_of_G, seed=random.randint(0, 100), max_attempts_per_slot=50000)
-    print("GPT original_Vp Check: ", original_Vp)
-    # exit()
+    original_Vp = build_original_Vp(G, vp_size, nodes, diameter_of_G=diameter_of_G, seed=random.randint(0, 100), max_attempts_per_slot=50000)
 
     # This function 'random_no_consecutive' generates a list of 'vp_size' random numbers between 0 and total_nodes-1 with guaranteed no consecutive duplicates 
     # original_Vp = random_no_consecutive(n=vp_size, a=0, b=total_nodes-1, rng=random.Random())
@@ -417,17 +414,17 @@ def choose_steiner_set(G, fraction):
 
     # print("Predicted Vertices (original_Vp):", original_Vp, " and its length: ", len(original_Vp))
 
-    dup_counts = count_duplicates(original_Vp)
+    # dup_counts = count_duplicates(original_Vp)
     # print("Length of Original Vp: ",len(original_Vp))
     # extra dups = sum of (count - 1) for each duplicated element
     extra_dups = sum(cnt for cnt in dup_counts.values())
 
-    if dup_counts:
-        print("Duplicate elements in original_Vp and their counts:")
-        for element, count in dup_counts.items():
-            print(f"{element}: {count}")
-    else:
-        print("No duplicate elements found.")
+    # if dup_counts:
+    #     print("Duplicate elements in original_Vp and their counts:")
+    #     for element, count in dup_counts.items():
+    #         print(f"{element}: {count}")
+    # else:
+    #     print("No duplicate elements found.")
 
     reduced_Vp = set(original_Vp)  # Convert to a set for uniqueness
 
@@ -468,7 +465,7 @@ def choose_steiner_set(G, fraction):
     return S, original_Vp, owner
 
 
-def augment_steiner_tree_with_remaining_vertices(G, T_H):
+def augment_steiner_tree_with_remaining_vertices(G, T_H, myNodeCount):
     """
     Augments a given Steiner tree T_H by adding the remaining vertices of G,
     connecting each vertex (from V \ V(T_H)) to the current tree T1 via the shortest path.
@@ -492,7 +489,7 @@ def augment_steiner_tree_with_remaining_vertices(G, T_H):
     current_nodes = set(T_final.nodes())
     
     # Set of vertices not yet added.
-    remaining_nodes = set(G.nodes()) - current_nodes
+    remaining_nodes = set(list(range(myNodeCount))) - current_nodes
     
     # Continue until all vertices from G are in the tree.
     while remaining_nodes:
@@ -524,7 +521,7 @@ def augment_steiner_tree_with_remaining_vertices(G, T_H):
     return T_final
 
 
-def augment_modified_mst_with_remaining_vertices(G, T_H):
+def augment_modified_mst_with_remaining_vertices(G, T_H, myNodeCount):
     """
     Augments a given Steiner tree T_H by adding the remaining vertices of G,
     connecting each vertex (from V \ V(T_H)) to the current tree T1 via the shortest path.
@@ -548,7 +545,7 @@ def augment_modified_mst_with_remaining_vertices(G, T_H):
     current_nodes = set(T_final.nodes())
     
     # Set of vertices not yet added.
-    remaining_nodes = set(G.nodes()) - current_nodes
+    remaining_nodes = set(list(range(myNodeCount))) - current_nodes
     
     # Continue until all vertices from G are in the tree.
     while remaining_nodes:

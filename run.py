@@ -327,8 +327,8 @@ def count_duplicates(input_list):
     duplicates = {element: count for element, count in counts.items() if count > 1}
     return duplicates
 
-def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction):
-    diam = nx.diameter(G, weight='weight')
+def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction, diam):
+    # diam = nx.diameter(G, weight='weight')
     max_iter = 100000  # Maximum number of iterations to avoid infinite loop
 
     for attempt in range(1, max_iter+1):
@@ -390,18 +390,18 @@ def sample_Q_within_diameter_with_overlap(G, Vp, error_cutoff, overlap, fraction
     return Q
 
 
-def calculate_stretch(G_example, T, T_new, mst_g, Vp, fraction, owner, error_cutoff, overlap):
+def calculate_stretch(G_example, T, T_new, mst_g, Vp, fraction, owner, error_cutoff, overlap, myNodeCount, diameter_of_G):
     # V is the set of all vertices in the graph G.
     # print("type of vp is", type(Vp))
-    V = list(T.nodes())
-    V_new = list(T_new.nodes())
+    V = list(range(myNodeCount))
+    V_new = V
 
     # Requesting nodes Q: randomly select 1/4th of V with the same cardinality as Vp,
     # also ensuring they do not include the owner.
     # available_for_Q = list(set(V) - {owner})
     # Q = random.sample(available_for_Q, len(Vp))
 
-    Q = sample_Q_within_diameter_with_overlap(G_example, Vp, error_cutoff, overlap, fraction)
+    Q = sample_Q_within_diameter_with_overlap(G_example, Vp, error_cutoff, overlap, fraction, diameter_of_G)
 
     print("Selected Q = ", Q)
 
@@ -413,7 +413,6 @@ def calculate_stretch(G_example, T, T_new, mst_g, Vp, fraction, owner, error_cut
     # print("\n--- Move Operations ---")
 
     centers = find_tree_center(T)
-    centers_new = find_tree_center(T_new)
     # print("Center(s) of the tree:", centers)
 
     root = centers[0]
@@ -574,7 +573,9 @@ def main(fraction, network_file_name, error_cutoff, overlap):
 
     G_example = load_graph(network_file_name)
 
-    myNodeCount = G_example.number_of_nodes()
+    match3 = re.search(r'(\d+)', network_file_name)
+    if match3:
+        myNodeCount = int(match3.group(1))
 
     mst_filename = None
     for filename in os.listdir(os.path.join('graphs_new', 'mst')):
@@ -585,12 +586,10 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     mst_g = load_mst(mst_filename)
 
     match = re.search(r'diameter(\d+)', mst_filename)
-
     if match:
         diameter_of_mst_g = int(match.group(1))
 
     match2 = re.search(r'diameter(\d+)', network_file_name)
-
     if match2:
         diameter_of_G = int(match2.group(1))
 
@@ -604,19 +603,19 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     print("Diameter of MST:", diameter_of_mst_g)
 
     # while True:
-    S_example, Vp, owner = choose_steiner_set(G_example, fraction)
+    S_example, Vp, owner = choose_steiner_set(G_example, fraction, diameter_of_G, myNodeCount)
     print("Randomly chosen Predicted Vertices (Vp):", Vp)
     print("Owner node:", owner)
     print("Steiner set S:", S_example)
 
     # Select S_example, Vp, owner such that only when diameter of G_sub <= diameter of G/4
-    removed_vertices_for_subgraph = set(G_example.nodes()) - set(S_example)
+    # removed_vertices_for_subgraph = set(G_example.nodes()) - set(S_example)
 
-    G_sub, removed_nodes = make_G_sub(G_example, removed_vertices_for_subgraph)
+    # G_sub, removed_nodes = make_G_sub(G_example, removed_vertices_for_subgraph)
     # see_graph(G_sub)
-    diameter_of_G_sub = nx.diameter(G_sub, weight='weight')
-    print("Yaha Diameter of G_sub:", diameter_of_G_sub)
-    print("Yaha Diameter of G/3:", diameter_of_G/3)
+    # diameter_of_G_sub = nx.diameter(G_sub, weight='weight')
+    # print("Yaha Diameter of G_sub:", diameter_of_G_sub)
+    # print("Yaha Diameter of G/3:", diameter_of_G/3)
         # Compute Steiner tree
         # if diameter_of_G_sub <= diameter_of_G/3:
         #     break
@@ -646,15 +645,15 @@ def main(fraction, network_file_name, error_cutoff, overlap):
     #     print(f"{u} - {v}, weight = {v['weight'] if isinstance(v, dict) else v}")
     
     # Compute Final tree T
-    T = augment_steiner_tree_with_remaining_vertices(G_example, T_H)
+    T = augment_steiner_tree_with_remaining_vertices(G_example, T_H, myNodeCount)
     # T = augment_tree_with_remaining_nodes(G_example, T_H, weight="weight")
     # see_graph(T)
-    T_new = augment_modified_mst_with_remaining_vertices(G_example, modified_mst)
+    T_new = augment_modified_mst_with_remaining_vertices(G_example, modified_mst, myNodeCount)
     # see_graph(T_new)
-    diameter_of_T = nx.diameter(T, weight='weight')
-    diameter_of_T_new = nx.diameter(T_new, weight='weight')
-    print("Diameter of T:", diameter_of_T)
-    print("Diameter of T_new:", diameter_of_T_new)
+    # diameter_of_T = nx.diameter(T, weight='weight')
+    # diameter_of_T_new = nx.diameter(T_new, weight='weight')
+    # print("Diameter of T:", diameter_of_T)
+    # print("Diameter of T_new:", diameter_of_T_new)
         
 
     # verifying the edge weights by printing them
@@ -663,7 +662,7 @@ def main(fraction, network_file_name, error_cutoff, overlap):
 
     # see_graph(T)
     overlap = int(overlap)
-    Q = calculate_stretch(G_example, T, T_new, mst_g, Vp, fraction, owner, error_cutoff, overlap)
+    Q = calculate_stretch(G_example, T, T_new, mst_g, Vp, fraction, owner, error_cutoff, overlap, myNodeCount, diameter_of_G)
     print("Size of Q:", len(Q))
     # exit()
 

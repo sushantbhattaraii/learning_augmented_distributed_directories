@@ -9,7 +9,7 @@ import os
 
 # Gather and sort all Excel files
 
-files = sorted(glob.glob('./results/steiner_corrected_data/random/128nodes_diameter7_cutoff5.0*.xlsx'))
+files = sorted(glob.glob('./results/oct7data/random/128nodes_diameter7_cutoffinf*.xlsx'))
 
 # Extract node count and overlap from filename
 m = re.search(r'(\d+)nodes_', files[0])
@@ -127,7 +127,7 @@ ax3.set_xticks(unique_x)
 # Save or display
 plt.tight_layout()
 plt.ylim(0, 5)
-folder = "steiner_corrected_plots"
+folder = "oct7plots"
 folder2 = "random"
 # filename = f'{node_count}_nodes.png'
 filename = f'{node_count}_nodes_cutoff_{actual_cutoff}.png'
