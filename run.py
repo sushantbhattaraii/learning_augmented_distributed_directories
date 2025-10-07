@@ -7,6 +7,7 @@ import network_generator as my_ng
 import argparse
 import matplotlib.pyplot as plt
 import os
+import re
 from fractions import Fraction
 from collections import Counter
 from draw_graph import see_graph
@@ -304,6 +305,12 @@ def load_graph(network_file_name):
     G_example = nx.relabel_nodes(G_example, lambda x: int(x))
     return G_example
 
+def load_mst(network_file_name):
+    graphml_file = os.path.join('graphs_new', 'mst', str(network_file_name))
+    mst_example = nx.read_graphml(graphml_file)
+    mst_example = nx.relabel_nodes(mst_example, lambda x: int(x))
+    return mst_example
+
 
 def count_duplicates(input_list):
     """
@@ -567,12 +574,32 @@ def main(fraction, network_file_name, error_cutoff, overlap):
 
     G_example = load_graph(network_file_name)
 
-    # Contrcut MST_g of Graph G_example for Arrow protocol
-    mst_g = nx.minimum_spanning_tree(G_example, weight='weight')
-    # see_graph(mst_g)
-    diameter_of_mst_g = nx.diameter(mst_g, weight='weight')
+    myNodeCount = G_example.number_of_nodes()
 
-    diameter_of_G = nx.diameter(G_example, weight='weight')
+    mst_filename = None
+    for filename in os.listdir(os.path.join('graphs_new', 'mst')):
+        if str(myNodeCount) in filename:
+            mst_filename = filename
+            break
+
+    mst_g = load_mst(mst_filename)
+
+    match = re.search(r'diameter(\d+)', mst_filename)
+
+    if match:
+        diameter_of_mst_g = int(match.group(1))
+
+    match2 = re.search(r'diameter(\d+)', network_file_name)
+
+    if match2:
+        diameter_of_G = int(match2.group(1))
+
+    # # Contrcut MST_g of Graph G_example for Arrow protocol
+    # mst_g = nx.minimum_spanning_tree(G_example, weight='weight')
+    # # see_graph(mst_g)
+    # diameter_of_mst_g = nx.diameter(mst_g, weight='weight')
+
+    # diameter_of_G = nx.diameter(G_example, weight='weight')
     print("Diameter of G_example:", diameter_of_G)
     print("Diameter of MST:", diameter_of_mst_g)
 
