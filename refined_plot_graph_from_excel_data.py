@@ -9,7 +9,7 @@ import os
 
 # Gather and sort all Excel files
 
-files = sorted(glob.glob('./results/oct7data/random/128nodes_diameter7_cutoffinf*.xlsx'))
+files = sorted(glob.glob('./results/threshEqualsDiam_data/random/1024nodes_diameter4_cutoff10*.xlsx'))
 
 # Extract node count and overlap from filename
 m = re.search(r'(\d+)nodes_', files[0])
@@ -127,11 +127,12 @@ ax3.set_xticks(unique_x)
 # Save or display
 plt.tight_layout()
 plt.ylim(0, 5)
-folder = "oct7plots"
-folder2 = "random"
+folder = "results/threshEqualsDiam_plots/random"
+
+os.makedirs(folder, exist_ok=True)
 # filename = f'{node_count}_nodes.png'
 filename = f'{node_count}_nodes_cutoff_{actual_cutoff}.png'
-path_to_save = os.path.join('results', folder, folder2, filename)
+path_to_save = os.path.join(folder, filename)
 
 plt.savefig(path_to_save)
-# plt.show()
+plt.show()
