@@ -9,7 +9,7 @@ import os
 
 # Gather and sort all Excel files
 
-files = sorted(glob.glob('./results/threshEqualsDiam_data/random/1024nodes_diameter4_cutoff10*.xlsx'))
+files = sorted(glob.glob('./results/threshEqualsDiamOver3_data/random/1024nodes_diameter4_cutoffinf*.xlsx'))
 
 # Extract node count and overlap from filename
 m = re.search(r'(\d+)nodes_', files[0])
@@ -49,7 +49,7 @@ for idx, f in enumerate(files):
         mean_max_error.index,
         mean_max_error.values,
         marker='o',
-        label=f'Prediction Error ≤ {actual_cutoff}',
+        label=f'Error ≤ {actual_cutoff}',
         color=cmap(2 * idx)
     )
 
@@ -127,7 +127,7 @@ ax3.set_xticks(unique_x)
 # Save or display
 plt.tight_layout()
 plt.ylim(0, 5)
-folder = "results/threshEqualsDiam_plots/random"
+folder = "results/threshEqualsDiamOver3_plots/random"
 
 os.makedirs(folder, exist_ok=True)
 # filename = f'{node_count}_nodes.png'
